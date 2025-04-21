@@ -2,11 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
     <title>gendy1web</title>
     <link rel="stylesheet" href="styles.css" />
     <link
@@ -19,7 +16,6 @@
       <main class="controls-container">
         <div class="control-pads">
           <div class="control-pad">
-            <h2>Frequency Range</h2>
             <div class="freq-range" id="freq-range">
               <div class="freq-line max-line" id="max-freq-line">
                 <div class="freq-handle"></div>
@@ -30,41 +26,26 @@
                 <div class="freq-label" id="minfreq-value">20 Hz</div>
               </div>
               <div class="freq-scale">
-                <div class="freq-tick" style="bottom: 0%">
-                  <span>20 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 25%">
-                  <span>100 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 50%">
-                  <span>500 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 75%">
-                  <span>2000 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 100%">
-                  <span>5000 Hz</span>
-                </div>
+                <div class="freq-tick" style="bottom: 0%"><span>20 Hz</span></div>
+                <div class="freq-tick" style="bottom: 25%"><span>100 Hz</span></div>
+                <div class="freq-tick" style="bottom: 50%"><span>500 Hz</span></div>
+                <div class="freq-tick" style="bottom: 75%"><span>2000 Hz</span></div>
+                <div class="freq-tick" style="bottom: 100%"><span>5000 Hz</span></div>
               </div>
             </div>
           </div>
 
           <div class="control-pad">
-            <h2>Scaling</h2>
             <div class="xy-pad" id="scaling-pad">
               <div class="xy-handle" id="scaling-handle"></div>
               <div class="xy-axis x-axis"></div>
               <div class="xy-axis y-axis"></div>
-              <div class="xy-label x-label">Duration Scale</div>
-              <div class="xy-label y-label">Amplitude Scale</div>
+              <div class="xy-label x-label">Duration</div>
+              <div class="xy-label y-label">Amplitude</div>
             </div>
             <div class="xy-values">
-              <div class="value-display">
-                Amp: <span id="ampscale-value">0.5</span>
-              </div>
-              <div class="value-display">
-                Dur: <span id="durscale-value">0.5</span>
-              </div>
+              <div class="value-display">Amp: <span id="ampscale-value">0.5</span></div>
+              <div class="value-display">Dur: <span id="durscale-value">0.5</span></div>
             </div>
           </div>
         </div>
@@ -77,17 +58,8 @@
           </div>
 
           <div class="control-points-container">
-            <label for="knum"
-              >Control Points: <span id="knum-value">12</span></label
-            >
-            <input
-              type="range"
-              id="knum"
-              min="1"
-              max="32"
-              step="1"
-              value="12"
-            />
+            <label for="knum">Points: <span id="knum-value">12</span></label>
+            <input type="range" id="knum" min="1" max="32" step="1" value="12" />
           </div>
         </div>
       </main>

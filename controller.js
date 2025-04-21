@@ -34,14 +34,17 @@ const elements = {
 
 // Parameter state
 const state = {
-  // XY Pad state
-  isDragging: false,
+  // XY Pad state - separate touch identifiers for multitouch
+  xyTouchId: null,
+  isDraggingXY: false,
   ampscale: 0.5,
   durscale: 0.5,
 
-  // Frequency Range state
-  isDraggingMin: false,
-  isDraggingMax: false,
+  // Frequency Range state - separate touch identifiers for multitouch
+  minFreqTouchId: null,
+  maxFreqTouchId: null,
+  isDraggingMinFreq: false,
+  isDraggingMaxFreq: false,
   minFreq: 20,
   maxFreq: 800,
 
@@ -127,7 +130,31 @@ function updateAudioParameter(paramName, value) {
  * @param {Event} event - The interaction event
  */
 function handleXYPadInteraction(event) {
-  if (!state.isDragging && event.type !== "mousedown" && event.type !== "touchstart") return
+  // For mouse events
+  if (event.type === "mousedown") {
+    state.isDraggingXY = true
+  } else if (event.type === "mousemove" && !state.isDraggingXY) {
+    return
+  }
+
+  // For touch events - ensure we're tracking the correct touch
+  if (event.type === "touchstart") {
+    if (state.xyTouchId !== null) return // Already tracking a touch
+    state.xyTouchId = event.touches[0].identifier
+    state.isDraggingXY = true
+  } else if (event.type === "touchmove") {
+    if (!state.isDraggingXY) return
+
+    // Find our tracked touch
+    let touchFound = false
+    for (let i = 0; i < event.touches.length; i++) {
+      if (event.touches[i].identifier === state.xyTouchId) {
+        touchFound = true
+        break
+      }
+    }
+    if (!touchFound) return
+  }
 
   event.preventDefault()
 
@@ -136,7 +163,24 @@ function handleXYPadInteraction(event) {
 
   // Handle both mouse and touch events
   if (event.type.startsWith("touch")) {
-    const touch = event.touches[0] || event.changedTouches[0]
+    // Find the touch we're tracking
+    let touch = null
+    for (let i = 0; i < event.touches.length; i++) {
+      if (event.touches[i].identifier === state.xyTouchId) {
+        touch = event.touches[i]
+        break
+      }
+    }
+    if (!touch && event.changedTouches) {
+      for (let i = 0; i < event.changedTouches.length; i++) {
+        if (event.changedTouches[i].identifier === state.xyTouchId) {
+          touch = event.changedTouches[i]
+          break
+        }
+      }
+    }
+    if (!touch) return
+
     clientX = touch.clientX
     clientY = touch.clientY
   } else {
@@ -157,9 +201,43 @@ function handleXYPadInteraction(event) {
  * @param {boolean} isMinLine - Whether the interaction is with the min frequency line
  */
 function handleFreqRangeInteraction(event, isMinLine) {
-  if (!state.isDraggingMin && !state.isDraggingMax && event.type !== "mousedown" && event.type !== "touchstart") return
+  // For mouse events
+  if (event.type === "mousedown") {
+    if (isMinLine) {
+      state.isDraggingMinFreq = true
+    } else {
+      state.isDraggingMaxFreq = true
+    }
+  } else if (event.type === "mousemove") {
+    if (isMinLine && !state.isDraggingMinFreq) return
+    if (!isMinLine && !state.isDraggingMaxFreq) return
+  }
 
-  if ((isMinLine && !state.isDraggingMin) || (!isMinLine && !state.isDraggingMax)) return
+  // For touch events - ensure we're tracking the correct touch
+  if (event.type === "touchstart") {
+    if (isMinLine) {
+      if (state.minFreqTouchId !== null) return // Already tracking a touch
+      state.minFreqTouchId = event.touches[0].identifier
+      state.isDraggingMinFreq = true
+    } else {
+      if (state.maxFreqTouchId !== null) return // Already tracking a touch
+      state.maxFreqTouchId = event.touches[0].identifier
+      state.isDraggingMaxFreq = true
+    }
+  } else if (event.type === "touchmove") {
+    const touchId = isMinLine ? state.minFreqTouchId : state.maxFreqTouchId
+    if (touchId === null) return
+
+    // Find our tracked touch
+    let touchFound = false
+    for (let i = 0; i < event.touches.length; i++) {
+      if (event.touches[i].identifier === touchId) {
+        touchFound = true
+        break
+      }
+    }
+    if (!touchFound) return
+  }
 
   event.preventDefault()
 
@@ -168,7 +246,26 @@ function handleFreqRangeInteraction(event, isMinLine) {
 
   // Handle both mouse and touch events
   if (event.type.startsWith("touch")) {
-    const touch = event.touches[0] || event.changedTouches[0]
+    const touchId = isMinLine ? state.minFreqTouchId : state.maxFreqTouchId
+
+    // Find the touch we're tracking
+    let touch = null
+    for (let i = 0; i < event.touches.length; i++) {
+      if (event.touches[i].identifier === touchId) {
+        touch = event.touches[i]
+        break
+      }
+    }
+    if (!touch && event.changedTouches) {
+      for (let i = 0; i < event.changedTouches.length; i++) {
+        if (event.changedTouches[i].identifier === touchId) {
+          touch = event.changedTouches[i]
+          break
+        }
+      }
+    }
+    if (!touch) return
+
     clientY = touch.clientY
   } else {
     clientY = event.clientY
@@ -190,6 +287,32 @@ function handleFreqRangeInteraction(event, isMinLine) {
   }
 
   updateFrequencyDisplay()
+}
+
+/**
+ * Resets touch tracking when touches end
+ * @param {Event} event - The touch end event
+ */
+function handleTouchEnd(event) {
+  // Check if our tracked touches have ended
+  for (let i = 0; i < event.changedTouches.length; i++) {
+    const id = event.changedTouches[i].identifier
+
+    if (id === state.xyTouchId) {
+      state.xyTouchId = null
+      state.isDraggingXY = false
+    }
+
+    if (id === state.minFreqTouchId) {
+      state.minFreqTouchId = null
+      state.isDraggingMinFreq = false
+    }
+
+    if (id === state.maxFreqTouchId) {
+      state.maxFreqTouchId = null
+      state.isDraggingMaxFreq = false
+    }
+  }
 }
 
 /**
@@ -260,60 +383,22 @@ function forceLandscape() {
  */
 function setupEventListeners() {
   // XY Pad event listeners
-  elements.xyPad.addEventListener("mousedown", (e) => {
-    state.isDragging = true
-    handleXYPadInteraction(e)
-  })
+  elements.xyPad.addEventListener("mousedown", handleXYPadInteraction, { passive: false })
+  elements.xyPad.addEventListener("touchstart", handleXYPadInteraction, { passive: false })
 
-  elements.xyPad.addEventListener("touchstart", (e) => {
-    state.isDragging = true
-    handleXYPadInteraction(e)
-  })
-
-  // Frequency Range event listeners - expanded touch targets
-  elements.minFreqLine.addEventListener(
-    "mousedown",
-    (e) => {
-      state.isDraggingMin = true
-      handleFreqRangeInteraction(e, true)
-    },
-    { passive: false },
-  )
-
-  elements.minFreqLine.addEventListener(
-    "touchstart",
-    (e) => {
-      state.isDraggingMin = true
-      handleFreqRangeInteraction(e, true)
-    },
-    { passive: false },
-  )
-
-  elements.maxFreqLine.addEventListener(
-    "mousedown",
-    (e) => {
-      state.isDraggingMax = true
-      handleFreqRangeInteraction(e, false)
-    },
-    { passive: false },
-  )
-
-  elements.maxFreqLine.addEventListener(
-    "touchstart",
-    (e) => {
-      state.isDraggingMax = true
-      handleFreqRangeInteraction(e, false)
-    },
-    { passive: false },
-  )
+  // Frequency Range event listeners
+  elements.minFreqLine.addEventListener("mousedown", (e) => handleFreqRangeInteraction(e, true), { passive: false })
+  elements.minFreqLine.addEventListener("touchstart", (e) => handleFreqRangeInteraction(e, true), { passive: false })
+  elements.maxFreqLine.addEventListener("mousedown", (e) => handleFreqRangeInteraction(e, false), { passive: false })
+  elements.maxFreqLine.addEventListener("touchstart", (e) => handleFreqRangeInteraction(e, false), { passive: false })
 
   // Document-level event listeners for drag operations
   document.addEventListener(
     "mousemove",
     (e) => {
-      if (state.isDragging) handleXYPadInteraction(e)
-      if (state.isDraggingMin) handleFreqRangeInteraction(e, true)
-      if (state.isDraggingMax) handleFreqRangeInteraction(e, false)
+      if (state.isDraggingXY) handleXYPadInteraction(e)
+      if (state.isDraggingMinFreq) handleFreqRangeInteraction(e, true)
+      if (state.isDraggingMaxFreq) handleFreqRangeInteraction(e, false)
     },
     { passive: false },
   )
@@ -321,24 +406,22 @@ function setupEventListeners() {
   document.addEventListener(
     "touchmove",
     (e) => {
-      if (state.isDragging) handleXYPadInteraction(e)
-      if (state.isDraggingMin) handleFreqRangeInteraction(e, true)
-      if (state.isDraggingMax) handleFreqRangeInteraction(e, false)
+      // Handle each type of interaction separately
+      if (state.isDraggingXY) handleXYPadInteraction(e)
+      if (state.isDraggingMinFreq) handleFreqRangeInteraction(e, true)
+      if (state.isDraggingMaxFreq) handleFreqRangeInteraction(e, false)
     },
     { passive: false },
   )
 
   document.addEventListener("mouseup", () => {
-    state.isDragging = false
-    state.isDraggingMin = false
-    state.isDraggingMax = false
+    state.isDraggingXY = false
+    state.isDraggingMinFreq = false
+    state.isDraggingMaxFreq = false
   })
 
-  document.addEventListener("touchend", () => {
-    state.isDragging = false
-    state.isDraggingMin = false
-    state.isDraggingMax = false
-  })
+  document.addEventListener("touchend", handleTouchEnd)
+  document.addEventListener("touchcancel", handleTouchEnd)
 
   // Control Points slider
   elements.knumSlider.addEventListener("input", () => {
