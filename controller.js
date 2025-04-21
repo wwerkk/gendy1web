@@ -1,91 +1,145 @@
-let gendy1Node = null
 let audioContext = null
+let gendy1Node = null
 
-const toggleButton = document.getElementById("toggleButton")
-const icon = toggleButton.querySelector(".material-icons")
-const sliders = document.querySelectorAll('input[type="range"]')
+// DOM Elements
+const elements = {
+  // Main controls
+  toggleButton: document.getElementById("toggleButton"),
+  playIcon: document.querySelector("#toggleButton .material-icons"),
+  knumSlider: document.getElementById("knum"),
+  knumValue: document.getElementById("knum-value"),
 
-// XY Pad elements
-const xyPad = document.getElementById("scaling-pad")
-const xyHandle = document.getElementById("scaling-handle")
-const ampscaleValue = document.getElementById("ampscale-value")
-const durscaleValue = document.getElementById("durscale-value")
+  // Frequency Range
+  freqRange: document.getElementById("freq-range"),
+  minFreqLine: document.getElementById("min-freq-line"),
+  maxFreqLine: document.getElementById("max-freq-line"),
+  minFreqValue: document.getElementById("minfreq-value"),
+  maxFreqValue: document.getElementById("maxfreq-value"),
 
-// Frequency Range elements
-const freqRange = document.getElementById("freq-range")
-const minFreqLine = document.getElementById("min-freq-line")
-const maxFreqLine = document.getElementById("max-freq-line")
-const minFreqValue = document.getElementById("minfreq-value")
-const maxFreqValue = document.getElementById("maxfreq-value")
+  // XY Pad
+  xyPad: document.getElementById("scaling-pad"),
+  xyHandle: document.getElementById("scaling-handle"),
+  ampscaleValue: document.getElementById("ampscale-value"),
+  durscaleValue: document.getElementById("durscale-value"),
+}
 
-// XY Pad state
-let isDragging = false
-let ampscale = 0.5
-let durscale = 0.5
+// Parameter state
+const state = {
+  // Frequency Range
+  isDraggingMin: false,
+  isDraggingMax: false,
+  minFreq: 20,
+  maxFreq: 800,
 
-// Frequency Range state
-let isDraggingMin = false
-let isDraggingMax = false
-let minFreq = 20
-let maxFreq = 800
-const MIN_FREQ_LIMIT = 1
-const MAX_FREQ_LIMIT = 5000
+  // Constants
+  MIN_FREQ_LIMIT: 1,
+  MAX_FREQ_LIMIT: 5000,
 
-// Initialize XY Pad position
-function updateHandlePosition() {
-  const padRect = xyPad.getBoundingClientRect()
-  const x = durscale * padRect.width
-  const y = (1 - ampscale) * padRect.height // Invert Y axis for natural up=more feeling
+  // XY Pad
+  isDragging: false,
+  ampscale: 0.5,
+  durscale: 0.5,
+}
 
-  xyHandle.style.left = `${x}px`
-  xyHandle.style.top = `${y}px`
+/**
+ * Updates the XY pad handle position based on current ampscale and durscale values
+ */
+function updateXYPadDisplay() {
+  const padRect = elements.xyPad.getBoundingClientRect()
+  const x = state.durscale * padRect.width
+  const y = (1 - state.ampscale) * padRect.height // Invert Y axis for natural up=more feeling
 
-  ampscaleValue.textContent = ampscale.toFixed(2)
-  durscaleValue.textContent = durscale.toFixed(2)
+  elements.xyHandle.style.left = `${x}px`
+  elements.xyHandle.style.top = `${y}px`
+  elements.ampscaleValue.textContent = state.ampscale.toFixed(2)
+  elements.durscaleValue.textContent = state.durscale.toFixed(2)
 
-  // Update audio parameters if available
-  if (gendy1Node) {
-    if (gendy1Node.parameters.has("ampscale")) {
-      gendy1Node.parameters.get("ampscale").value = ampscale
-    }
-    if (gendy1Node.parameters.has("durscale")) {
-      gendy1Node.parameters.get("durscale").value = durscale
-    }
+  updateAudioParameter("ampscale", state.ampscale)
+  updateAudioParameter("durscale", state.durscale)
+}
+
+/**
+ * Updates the frequency lines position based on current minFreq and maxFreq values
+ */
+function updateFrequencyDisplay() {
+  const rangeHeight = elements.freqRange.clientHeight
+
+  // Calculate positions (top=high, bottom=low)
+  const minPos = (1 - state.minFreq / state.MAX_FREQ_LIMIT) * rangeHeight
+  const maxPos = (1 - state.maxFreq / state.MAX_FREQ_LIMIT) * rangeHeight
+
+  elements.minFreqLine.style.top = `${minPos}px`
+  elements.maxFreqLine.style.top = `${maxPos}px`
+
+  elements.minFreqValue.textContent = `${state.minFreq} Hz`
+  elements.maxFreqValue.textContent = `${state.maxFreq} Hz`
+
+  updateAudioParameter("minfreq", state.minFreq)
+  updateAudioParameter("maxfreq", state.maxFreq)
+}
+
+/**
+ * Updates an audio parameter if the audio context is active
+ * @param {string} paramName - The name of the parameter to update
+ * @param {number} value - The new value for the parameter
+ */
+function updateAudioParameter(paramName, value) {
+  if (gendy1Node && gendy1Node.parameters.has(paramName)) {
+    gendy1Node.parameters.get(paramName).value = value
   }
 }
 
-// Initialize Frequency Range positions
-function updateFrequencyLines() {
-  const rangeHeight = freqRange.clientHeight
+/**
+ * Handles Frequency Range interaction events (mouse/touch)
+ * @param {Event} event - The interaction event
+ * @param {boolean} isMinLine - Whether the interaction is with the min frequency line
+ */
+function handleFreqRangeInteraction(event, isMinLine) {
+  if (!state.isDraggingMin && !state.isDraggingMax && event.type !== "mousedown" && event.type !== "touchstart") return
 
-  // Calculate positions (bottom=low, top=high)
-  const minPos = (1 - minFreq / MAX_FREQ_LIMIT) * rangeHeight
-  const maxPos = (1 - maxFreq / MAX_FREQ_LIMIT) * rangeHeight
-
-  minFreqLine.style.top = `${minPos}px`
-  maxFreqLine.style.top = `${maxPos}px`
-
-  minFreqValue.textContent = `${minFreq} Hz`
-  maxFreqValue.textContent = `${maxFreq} Hz`
-
-  // Update audio parameters if available
-  if (gendy1Node) {
-    if (gendy1Node.parameters.has("minfreq")) {
-      gendy1Node.parameters.get("minfreq").value = minFreq
-    }
-    if (gendy1Node.parameters.has("maxfreq")) {
-      gendy1Node.parameters.get("maxfreq").value = maxFreq
-    }
-  }
-}
-
-// Handle XY Pad interactions
-function handleXYPadInteraction(event) {
-  if (!isDragging && event.type !== "mousedown" && event.type !== "touchstart") return
+  if ((isMinLine && !state.isDraggingMin) || (!isMinLine && !state.isDraggingMax)) return
 
   event.preventDefault()
 
-  const padRect = xyPad.getBoundingClientRect()
+  const rangeRect = elements.freqRange.getBoundingClientRect()
+  let clientY
+
+  // Handle both mouse and touch events
+  if (event.type.startsWith("touch")) {
+    const touch = event.touches[0] || event.changedTouches[0]
+    clientY = touch.clientY
+  } else {
+    clientY = event.clientY
+  }
+
+  // Calculate position relative to container
+  const relativeY = clientY - rangeRect.top
+  const normalizedY = 1 - relativeY / rangeRect.height // Invert for natural mapping
+
+  // Calculate frequency value
+  const freq = Math.round(normalizedY * state.MAX_FREQ_LIMIT)
+
+  if (isMinLine) {
+    // Ensure min frequency doesn't exceed max frequency
+    state.minFreq = Math.max(state.MIN_FREQ_LIMIT, Math.min(state.maxFreq - 1, freq))
+  } else {
+    // Ensure max frequency doesn't go below min frequency
+    state.maxFreq = Math.max(state.minFreq + 1, Math.min(state.MAX_FREQ_LIMIT, freq))
+  }
+
+  updateFrequencyDisplay()
+}
+
+/**
+ * Handles XY Pad interaction events (mouse/touch)
+ * @param {Event} event - The interaction event
+ */
+function handleXYPadInteraction(event) {
+  if (!state.isDragging && event.type !== "mousedown" && event.type !== "touchstart") return
+
+  event.preventDefault()
+
+  const padRect = elements.xyPad.getBoundingClientRect()
   let clientX, clientY
 
   // Handle both mouse and touch events
@@ -99,145 +153,15 @@ function handleXYPadInteraction(event) {
   }
 
   // Calculate normalized values (0-1)
-  durscale = Math.max(0, Math.min(1, (clientX - padRect.left) / padRect.width))
-  ampscale = Math.max(0, Math.min(1, 1 - (clientY - padRect.top) / padRect.height)) // Invert Y
+  state.durscale = Math.max(0, Math.min(1, (clientX - padRect.left) / padRect.width))
+  state.ampscale = Math.max(0, Math.min(1, 1 - (clientY - padRect.top) / padRect.height)) // Invert Y
 
-  updateHandlePosition()
+  updateXYPadDisplay()
 }
 
-// Handle Frequency Range interactions
-function handleFreqRangeInteraction(event, isMinLine) {
-  if (!isDraggingMin && !isDraggingMax && event.type !== "mousedown" && event.type !== "touchstart") return
-
-  if ((isMinLine && !isDraggingMin) || (!isMinLine && !isDraggingMax)) return
-
-  event.preventDefault()
-
-  const rangeRect = freqRange.getBoundingClientRect()
-  let clientY
-
-  // Handle both mouse and touch events
-  if (event.type.startsWith("touch")) {
-    const touch = event.touches[0] || event.changedTouches[0]
-    clientY = touch.clientY
-  } else {
-    clientY = event.clientY
-  }
-
-  // Calculate position relative to container (top=0, bottom=height)
-  const relativeY = clientY - rangeRect.top
-
-  // Calculate frequency value (top=max, bottom=min)
-  // Map position to frequency range (invert so top=high, bottom=low)
-  const normalizedPos = relativeY / rangeRect.height
-  const freq = Math.round((1 - normalizedPos) * MAX_FREQ_LIMIT)
-
-  if (isMinLine) {
-    // Ensure min frequency doesn't exceed max frequency
-    minFreq = Math.max(MIN_FREQ_LIMIT, Math.min(maxFreq - 1, freq))
-  } else {
-    // Ensure max frequency doesn't go below min frequency
-    maxFreq = Math.max(minFreq + 1, Math.min(MAX_FREQ_LIMIT, freq))
-  }
-
-  updateFrequencyLines()
-}
-
-// XY Pad event listeners
-xyPad.addEventListener("mousedown", (e) => {
-  isDragging = true
-  handleXYPadInteraction(e)
-})
-
-xyPad.addEventListener("touchstart", (e) => {
-  isDragging = true
-  handleXYPadInteraction(e)
-})
-
-// Frequency Range event listeners
-minFreqLine.addEventListener("mousedown", (e) => {
-  isDraggingMin = true
-  handleFreqRangeInteraction(e, true)
-})
-
-minFreqLine.addEventListener("touchstart", (e) => {
-  isDraggingMin = true
-  handleFreqRangeInteraction(e, true)
-})
-
-maxFreqLine.addEventListener("mousedown", (e) => {
-  isDraggingMax = true
-  handleFreqRangeInteraction(e, false)
-})
-
-maxFreqLine.addEventListener("touchstart", (e) => {
-  isDraggingMax = true
-  handleFreqRangeInteraction(e, false)
-})
-
-// Document-level event listeners for drag operations
-document.addEventListener("mousemove", (e) => {
-  if (isDragging) handleXYPadInteraction(e)
-  if (isDraggingMin) handleFreqRangeInteraction(e, true)
-  if (isDraggingMax) handleFreqRangeInteraction(e, false)
-})
-
-document.addEventListener("touchmove", (e) => {
-  if (isDragging) handleXYPadInteraction(e)
-  if (isDraggingMin) handleFreqRangeInteraction(e, true)
-  if (isDraggingMax) handleFreqRangeInteraction(e, false)
-})
-
-document.addEventListener("mouseup", () => {
-  isDragging = false
-  isDraggingMin = false
-  isDraggingMax = false
-})
-
-document.addEventListener("touchend", () => {
-  isDragging = false
-  isDraggingMin = false
-  isDraggingMax = false
-})
-
-// Listeners
-document.addEventListener("DOMContentLoaded", () => {
-  // Initialize XY pad position
-  updateHandlePosition()
-
-  // Initialize frequency lines
-  updateFrequencyLines()
-
-  sliders.forEach((slider) => {
-    const display = document.getElementById(`${slider.id}-value`)
-    slider.addEventListener("input", () => {
-      let value = slider.value
-      if (slider.id === "minfreq" || slider.id === "maxfreq") {
-        value = `${value} Hz`
-      }
-      display.textContent = value
-
-      if (gendy1Node && gendy1Node.parameters.has(slider.id)) {
-        gendy1Node.parameters.get(slider.id).value = Number.parseFloat(slider.value)
-      }
-    })
-  })
-
-  toggleButton.addEventListener("click", async () => {
-    if (!audioContext) {
-      await initializeAudio()
-      icon.textContent = "stop"
-      toggleButton.classList.add("playing")
-    } else {
-      await audioContext.close()
-      audioContext = null
-      gendy1Node = null
-      icon.textContent = "play_arrow"
-      toggleButton.classList.remove("playing")
-    }
-  })
-})
-
+/**
+ * Initializes the audio context and worklet
+ */
 async function initializeAudio() {
   try {
     audioContext = new AudioContext()
@@ -245,30 +169,129 @@ async function initializeAudio() {
     gendy1Node = new AudioWorkletNode(audioContext, "gendy1-processor")
     gendy1Node.connect(audioContext.destination)
 
-    // Set initial values for sliders
-    sliders.forEach((slider) => {
-      if (gendy1Node.parameters.has(slider.id)) {
-        gendy1Node.parameters.get(slider.id).value = Number.parseFloat(slider.value)
-      }
-    })
+    // Set initial parameter values
+    updateAudioParameter("ampscale", state.ampscale)
+    updateAudioParameter("durscale", state.durscale)
+    updateAudioParameter("minfreq", state.minFreq)
+    updateAudioParameter("maxfreq", state.maxFreq)
+    updateAudioParameter("knum", Number.parseInt(elements.knumSlider.value))
 
-    // Set initial values for XY pad
-    if (gendy1Node.parameters.has("ampscale")) {
-      gendy1Node.parameters.get("ampscale").value = ampscale
-    }
-    if (gendy1Node.parameters.has("durscale")) {
-      gendy1Node.parameters.get("durscale").value = durscale
-    }
-
-    // Set initial values for frequency range
-    if (gendy1Node.parameters.has("minfreq")) {
-      gendy1Node.parameters.get("minfreq").value = minFreq
-    }
-    if (gendy1Node.parameters.has("maxfreq")) {
-      gendy1Node.parameters.get("maxfreq").value = maxFreq
-    }
+    // Update UI to reflect playing state
+    elements.playIcon.textContent = "stop"
+    elements.toggleButton.classList.add("playing")
   } catch (error) {
-    console.error("Error initializing:", error)
+    console.error("Error initializing audio:", error)
     alert("Failed to initialize audio. See console for details.")
   }
 }
+
+/**
+ * Stops audio playback and cleans up resources
+ */
+async function stopAudio() {
+  if (audioContext) {
+    await audioContext.close()
+    audioContext = null
+    gendy1Node = null
+
+    // Update UI to reflect stopped state
+    elements.playIcon.textContent = "play_arrow"
+    elements.toggleButton.classList.remove("playing")
+  }
+}
+
+/**
+ * Toggles audio playback state
+ */
+async function toggleAudio() {
+  if (!audioContext) {
+    await initializeAudio()
+  } else {
+    await stopAudio()
+  }
+}
+
+/**
+ * Sets up all event listeners
+ */
+function setupEventListeners() {
+
+  // Frequency Range event listeners
+  elements.minFreqLine.addEventListener("mousedown", (e) => {
+    state.isDraggingMin = true
+    handleFreqRangeInteraction(e, true)
+  })
+
+  elements.minFreqLine.addEventListener("touchstart", (e) => {
+    state.isDraggingMin = true
+    handleFreqRangeInteraction(e, true)
+  })
+
+  elements.maxFreqLine.addEventListener("mousedown", (e) => {
+    state.isDraggingMax = true
+    handleFreqRangeInteraction(e, false)
+  })
+
+  elements.maxFreqLine.addEventListener("touchstart", (e) => {
+    state.isDraggingMax = true
+    handleFreqRangeInteraction(e, false)
+  })
+
+  // XY Pad event listeners
+  elements.xyPad.addEventListener("mousedown", (e) => {
+    state.isDragging = true
+    handleXYPadInteraction(e)
+  })
+
+  elements.xyPad.addEventListener("touchstart", (e) => {
+    state.isDragging = true
+    handleXYPadInteraction(e)
+  })
+
+  // Document-level event listeners for drag operations
+  document.addEventListener("mousemove", (e) => {
+    if (state.isDragging) handleXYPadInteraction(e)
+    if (state.isDraggingMin) handleFreqRangeInteraction(e, true)
+    if (state.isDraggingMax) handleFreqRangeInteraction(e, false)
+  })
+
+  document.addEventListener("touchmove", (e) => {
+    if (state.isDragging) handleXYPadInteraction(e)
+    if (state.isDraggingMin) handleFreqRangeInteraction(e, true)
+    if (state.isDraggingMax) handleFreqRangeInteraction(e, false)
+  })
+
+  document.addEventListener("mouseup", () => {
+    state.isDragging = false
+    state.isDraggingMin = false
+    state.isDraggingMax = false
+  })
+
+  document.addEventListener("touchend", () => {
+    state.isDragging = false
+    state.isDraggingMin = false
+    state.isDraggingMax = false
+  })
+
+  // Control Points slider
+  elements.knumSlider.addEventListener("input", () => {
+    const value = elements.knumSlider.value
+    elements.knumValue.textContent = value
+    updateAudioParameter("knum", Number.parseInt(value))
+  })
+
+  // Play/Stop button
+  elements.toggleButton.addEventListener("click", toggleAudio)
+}
+
+/**
+ * Initializes the application
+ */
+function init() {
+  updateFrequencyDisplay()
+  updateXYPadDisplay()
+  setupEventListeners()
+}
+
+// Initialize the application when the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", init)

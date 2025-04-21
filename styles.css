@@ -1,65 +1,96 @@
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 800px;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.app-container {
+  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f5f5f5;
+}
+
+header {
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 h1 {
-  color: #333;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
   text-align: center;
 }
 
-.control-section {
+.controls-container {
   background-color: #fff;
-  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.control-pads {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 20px;
 }
 
-.control-row {
-  display: flex;
-  margin-bottom: 15px;
-}
-
-.control {
+.control-pad {
   flex: 1;
-  margin: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+.playback-control {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
 }
 
-select,
-input[type="range"] {
-  width: 100%;
+.control-points-container {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  margin-top: 10px;
 }
 
-.value-display {
-  font-size: 0.9em;
-  color: #666;
-  text-align: center;
-  margin-top: 5px;
+.control-points {
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 button {
-  display: block;
-  margin: 20px auto;
-  padding: 10px 20px;
   background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
-  font-size: 24px;
-  width: 80px;
-  height: 50px;
-  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
 }
 
 button.playing {
@@ -67,27 +98,98 @@ button.playing {
 }
 
 .material-icons {
-  vertical-align: middle;
   font-size: 32px;
 }
 
-.distribution-info {
+input[type="range"] {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.value-display {
+  font-size: 0.9em;
+  color: #666;
+  text-align: center;
+}
+
+.xy-values {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.xy-values .value-display {
+  margin: 0 10px;
+}
+
+/* XY Pad Styles */
+.xy-pad {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  touch-action: none;
+}
+
+.xy-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  left: 50%;
+  top: 50%;
+}
+
+.xy-axis {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.x-axis {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+}
+
+.y-axis {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+}
+
+.xy-label {
+  position: absolute;
   font-size: 0.8em;
   color: #666;
-  margin-top: 5px;
+}
+
+.x-label {
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.y-label {
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
 }
 
 /* Frequency Range Control Styles */
-.freq-range-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-
 .freq-range {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: 280px;
+  height: 280px;
   background-color: #f0f0f0;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -159,82 +261,22 @@ button.playing {
   white-space: nowrap;
 }
 
-/* XY Pad Styles */
-.xy-pad-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 20px 0;
-}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .control-pads {
+    flex-direction: column;
+  }
 
-.xy-pad {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-  touch-action: none; /* Prevents default touch actions */
-}
+  .control-pad {
+    margin-bottom: 30px;
+  }
 
-.xy-handle {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: #4caf50;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  left: 50%;
-  top: 50%;
-}
+  button {
+    width: 50px;
+    height: 50px;
+  }
 
-.xy-axis {
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.x-axis {
-  width: 100%;
-  height: 1px;
-  top: 50%;
-}
-
-.y-axis {
-  width: 1px;
-  height: 100%;
-  left: 50%;
-}
-
-.xy-label {
-  position: absolute;
-  font-size: 0.8em;
-  color: #666;
-}
-
-.x-label {
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.y-label {
-  top: 50%;
-  left: 5px;
-  transform: translateY(-50%) rotate(-90deg);
-  transform-origin: left center;
-}
-
-.xy-values {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.xy-values .value-display {
-  margin: 0 10px;
+  .material-icons {
+    font-size: 28px;
+  }
 }
