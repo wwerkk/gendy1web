@@ -111,6 +111,33 @@ function updateFrequencyDisplay() {
   updateAudioParameter("maxfreq", state.maxFreq)
 }
 
+function updateFreqTicks() {
+  const tickContainer = document.querySelector(".freq-scale")
+  if (!tickContainer) return
+
+  // Clear existing ticks
+  tickContainer.innerHTML = ""
+
+  // Choose desired tick frequencies (log-distributed)
+  const freqs = [20, 100, 500, 2000, 5000]
+
+  freqs.forEach((freq) => {
+    const position = frequencyToPosition(freq)
+    const bottom = `${position * 100}%`
+
+    const tick = document.createElement("div")
+    tick.className = "freq-tick"
+    tick.style.bottom = bottom
+
+    const label = document.createElement("span")
+    label.textContent = `${freq} Hz`
+
+    tick.appendChild(label)
+    tickContainer.appendChild(tick)
+  })
+}
+
+
 /**
  * Updates an audio parameter if the audio context is active
  * @param {string} paramName - The name of the parameter to update
@@ -372,6 +399,7 @@ function init() {
   forceLandscape()
   updateXYPadDisplay()
   updateFrequencyDisplay()
+  updateFreqTicks()
   setupEventListeners()
 }
 
