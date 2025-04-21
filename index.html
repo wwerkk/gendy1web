@@ -15,32 +15,24 @@
 
     <div class="control-section">
       <h2>Frequency Controls</h2>
-      <div class="control-row">
-        <div class="control">
-          <label for="minfreq">Minimum Frequency (Hz)</label>
-          <input
-            type="range"
-            id="minfreq"
-            min="1"
-            max="5000"
-            step="1"
-            value="20"
-            autocomplete="off"
-          />
-          <div class="value-display" id="minfreq-value">20 Hz</div>
-        </div>
-        <div class="control">
-          <label for="maxfreq">Maximum Frequency (Hz)</label>
-          <input
-            type="range"
-            id="maxfreq"
-            min="1"
-            max="5000"
-            step="1"
-            value="800"
-            autocomplete="off"
-          />
-          <div class="value-display" id="maxfreq-value">800 Hz</div>
+      <div class="freq-range-container">
+        <div class="freq-range" id="freq-range">
+          <div class="freq-line max-line" id="max-freq-line">
+            <div class="freq-handle"></div>
+            <div class="freq-label" id="maxfreq-value">800 Hz</div>
+          </div>
+          <div class="freq-line min-line" id="min-freq-line">
+            <div class="freq-handle"></div>
+            <div class="freq-label" id="minfreq-value">20 Hz</div>
+          </div>
+          <div class="freq-scale">
+            <div class="freq-tick" style="bottom: 0%"><span>0 Hz</span></div>
+            <div class="freq-tick" style="bottom: 20%"><span>1000 Hz</span></div>
+            <div class="freq-tick" style="bottom: 40%"><span>2000 Hz</span></div>
+            <div class="freq-tick" style="bottom: 60%"><span>3000 Hz</span></div>
+            <div class="freq-tick" style="bottom: 80%"><span>4000 Hz</span></div>
+            <div class="freq-tick" style="bottom: 100%"><span>5000 Hz</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -56,12 +48,8 @@
           <div class="xy-label y-label">Amplitude Scale</div>
         </div>
         <div class="xy-values">
-          <div class="value-display">
-            Amplitude: <span id="ampscale-value">0.5</span>
-          </div>
-          <div class="value-display">
-            Duration: <span id="durscale-value">0.5</span>
-          </div>
+          <div class="value-display">Amplitude: <span id="ampscale-value">0.5</span></div>
+          <div class="value-display">Duration: <span id="durscale-value">0.5</span></div>
         </div>
       </div>
     </div>
@@ -71,15 +59,7 @@
       <div class="control-row">
         <div class="control">
           <label for="knum">Active Control Points</label>
-          <input
-            type="range"
-            id="knum"
-            min="1"
-            max="32"
-            step="1"
-            value="12"
-            autocomplete="off"
-          />
+          <input type="range" id="knum" min="1" max="32" step="1" value="12" />
           <div class="value-display" id="knum-value">12</div>
           <div class="distribution-info">
             Number of active control points to use
