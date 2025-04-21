@@ -279,17 +279,6 @@ async function toggleAudio() {
 }
 
 /**
- * Forces landscape orientation
- */
-function forceLandscape() {
-  if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock("landscape").catch((e) => {
-      console.log("Orientation lock failed:", e)
-    })
-  }
-}
-
-/**
  * Sets up all event listeners
  */
 function setupEventListeners() {
@@ -384,8 +373,6 @@ function setupEventListeners() {
   // Play/Stop button
   elements.toggleButton.addEventListener("click", toggleAudio)
 
-  // Orientation change
-  window.addEventListener("orientationchange", forceLandscape)
   window.addEventListener("resize", () => {
     updateXYPadDisplay()
     updateFrequencyDisplay()
@@ -396,7 +383,6 @@ function setupEventListeners() {
  * Initializes the application
  */
 function init() {
-  forceLandscape()
   updateXYPadDisplay()
   updateFrequencyDisplay()
   updateFreqTicks()
