@@ -87,7 +87,7 @@ document.addEventListener("touchend", () => {
 });
 
 // Listeners
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   updateHandlePosition()
   sliders.forEach((slider) => {
     const display = document.getElementById(`${slider.id}-value`);
