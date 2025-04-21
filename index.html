@@ -45,30 +45,21 @@
 
     <div class="control-section">
       <h2>Scaling Controls</h2>
-      <div class="control-row">
-        <div class="control">
-          <label for="ampscale">Amplitude Scale</label>
-          <input
-            type="range"
-            id="ampscale"
-            min="0"
-            max="1"
-            step="0.01"
-            value="0.5"
-          />
-          <div class="value-display" id="ampscale-value">0.5</div>
+      <div class="xy-pad-container">
+        <div class="xy-pad" id="scaling-pad">
+          <div class="xy-handle" id="scaling-handle"></div>
+          <div class="xy-axis x-axis"></div>
+          <div class="xy-axis y-axis"></div>
+          <div class="xy-label x-label">Duration Scale</div>
+          <div class="xy-label y-label">Amplitude Scale</div>
         </div>
-        <div class="control">
-          <label for="durscale">Duration Scale</label>
-          <input
-            type="range"
-            id="durscale"
-            min="0"
-            max="1"
-            step="0.01"
-            value="0.5"
-          />
-          <div class="value-display" id="durscale-value">0.5</div>
+        <div class="xy-values">
+          <div class="value-display">
+            Amplitude: <span id="ampscale-value">0.5</span>
+          </div>
+          <div class="value-display">
+            Duration: <span id="durscale-value">0.5</span>
+          </div>
         </div>
       </div>
     </div>
