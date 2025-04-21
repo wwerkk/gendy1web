@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled" />
     <title>gendy1web</title>
     <link rel="stylesheet" href="styles.css" />
     <link
@@ -31,19 +35,16 @@
               </div>
               <div class="freq-scale">
                 <div class="freq-tick" style="bottom: 0%">
-                  <span>0 Hz</span>
+                  <span>20 Hz</span>
                 </div>
-                <div class="freq-tick" style="bottom: 20%">
-                  <span>1000 Hz</span>
+                <div class="freq-tick" style="bottom: 25%">
+                  <span>100 Hz</span>
                 </div>
-                <div class="freq-tick" style="bottom: 40%">
+                <div class="freq-tick" style="bottom: 50%">
+                  <span>500 Hz</span>
+                </div>
+                <div class="freq-tick" style="bottom: 75%">
                   <span>2000 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 60%">
-                  <span>3000 Hz</span>
-                </div>
-                <div class="freq-tick" style="bottom: 80%">
-                  <span>4000 Hz</span>
                 </div>
                 <div class="freq-tick" style="bottom: 100%">
                   <span>5000 Hz</span>
@@ -72,15 +73,17 @@
           </div>
         </div>
 
-        <div class="playback-control">
-          <button id="toggleButton">
-            <span class="material-icons">play_arrow</span>
-          </button>
-        </div>
+        <div class="bottom-controls">
+          <div class="playback-control">
+            <button id="toggleButton">
+              <span class="material-icons">play_arrow</span>
+            </button>
+          </div>
 
-        <div class="control-points-container">
-          <h2>Control Points</h2>
-          <div class="control-points">
+          <div class="control-points-container">
+            <label for="knum"
+              >Control Points: <span id="knum-value">12</span></label
+            >
             <input
               type="range"
               id="knum"
@@ -89,10 +92,13 @@
               step="1"
               value="12"
             />
-            <div class="value-display" id="knum-value">12</div>
           </div>
         </div>
       </main>
+    </div>
+
+    <div id="orientation-message">
+      Please rotate your device to landscape mode
     </div>
 
     <script src="controller.js"></script>
