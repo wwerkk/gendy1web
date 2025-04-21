@@ -57,6 +57,14 @@ body {
   height: 100%;
 }
 
+.pad-wrapper {
+  width: 85%;
+  height: 85%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .bottom-controls {
   display: flex;
   align-items: center;
@@ -316,6 +324,11 @@ input[type="range"] {
 
   .material-icons {
     font-size: 22px;
+  }
+
+  .pad-wrapper {
+    width: 80%;
+    height: 80%;
   }
 }
 
